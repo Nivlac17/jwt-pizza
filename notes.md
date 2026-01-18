@@ -6,12 +6,13 @@ As part of `Deliverable ⓵ Development deployment: JWT Pizza`, start up the app
 
 | User activity                                       | Frontend component | Backend endpoints | Database SQL |
 | --------------------------------------------------- | ------------------ | ----------------- | ------------ |
-| View home page                                      |                    |                   |              |
-| Register new user<br/>(t@jwt.com, pw: test)         |                    |                   |              |
-| Login new user<br/>(t@jwt.com, pw: test)            |                    |                   |              |
-| Order pizza                                         |                    |                   |              |
-| Verify pizza                                        |                    |                   |              |
-| View profile page                                   |                    |                   |              |
+| View home page                                      |   home.tsx         |    none           |  none        |
+| Register new user<br/>(t@jwt.com, pw: test)         |    register.tsx    | [POST] /api/auth  |   INSERT INTO user (name, email, password) VALUES (?, ?, ?)
+||||    INSERT INTO userRole (userId, role, objectId) VALUES (?, ?, ?) |
+| Login new user<br/>(t@jwt.com, pw: test)            |    login.tsx       | [PUT] /api/auth   | `INSERT INTO auth (token, userId) VALUES (?, ?) ON DUPLICATE KEY UPDATE token=token`         |
+| Order pizza                                         |   menu.tsx         | [POST] /api/auth  | `INSERT INTO dinerOrder (dinerId, franchiseId, storeId, date) VALUES (?, ?, ?, now())` |
+| Verify pizza                                        |  deliver.tsx       |[POST] /api/order/verify|    None     |
+| View profile page                                   | dinerDashboard.tsx | [GetT] /api/order |'SELECT id, franchiseId,storeId, date FROM dinerOrder WHERE dinerId=? LIMIT ${offset},${config.db.listPerPage}`|
 | View franchise<br/>(as diner)                       |                    |                   |              |
 | Logout                                              |                    |                   |              |
 | View About page                                     |                    |                   |              |
