@@ -36,28 +36,40 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist/
-  deploy:
-    needs: build
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+deploy:
+  needs: build
+  permissions:
+    pages: write
+    id-token: write
+  environment:
+    name: github-pages
+    url: ${{ steps.deployment.outputs.page_url }}
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
 
-      - name: Run tests
-        run: |
-          npx playwright install --with-deps chromium
-          npm run test:coverage
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.x'
+        cache: 'npm'
 
-      - name: Update coverage
-        run: |
-          coverage=$(jq '.total.lines.pct' coverage/coverage-summary.json)
-          color=$(echo "$coverage < 80" | bc | awk '{if ($1) print "red"; else print "green"}')
-          curl -s -X POST "https://pizza-factory.cs329.click/api/badge/${{ secrets.NET_ID }}/jwtpizzacoverage?label=Coverage&value=$coverage%25&color=$color" -H "authorization: bearer ${{ secrets.FACTORY_API_KEY }}"
-          
+    - name: Install deps
+      run: npm ci
+
+    - name: Run tests
+      run: |
+        npx playwright install --with-deps chromium
+        npm run test:coverage
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+
+    - name: Update coverage
+      run: |
+        coverage=$(jq -r '.total.lines.pct' coverage/coverage-summary.json)
+        color=$(awk -v c="$coverage" 'BEGIN { if (c < 80) print "red"; else print "green" }')
+        curl -s -X POST "https://pizza-factory.cs329.click/api/badge/${{ secrets.NET_ID }}/jwtpizzacoverage?label=Coverage&value=${coverage}%25&color=${color}" \
+          -H "authorization: bearer ${{ secrets.FACTORY_API_KEY }}"
