@@ -53,7 +53,7 @@ test('page not found', async ({ page }) => {
 });
 
 
-test('delet franchise', async ({ page }) => {
+test('delete franchise', async ({ page }) => {
     await page.goto('http://localhost:5173/');
     await page.getByRole('link', { name: 'Login' }).click();
     await page.getByRole('textbox', { name: 'Email address' }).fill('calvinm7@byu.edu');

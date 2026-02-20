@@ -7,6 +7,7 @@ import { pizzaService } from '../service/service';
 import { Franchise, FranchiseList, Role, Store, User } from '../service/pizzaService';
 import { TrashIcon } from '../icons';
 
+
 interface Props {
   user: User | null;
 }
@@ -16,12 +17,29 @@ export default function AdminDashboard(props: Props) {
   const [franchiseList, setFranchiseList] = React.useState<FranchiseList>({ franchises: [], more: false });
   const [franchisePage, setFranchisePage] = React.useState(0);
   const filterFranchiseRef = React.useRef<HTMLInputElement>(null);
+  const filterUserRef = React.useRef<HTMLInputElement>(null);
+  const [users, setUsers] = React.useState<User[]>([]);
+
 
   React.useEffect(() => {
     (async () => {
       setFranchiseList(await pizzaService.getFranchises(franchisePage, 3, '*'));
     })();
   }, [props.user, franchisePage]);
+
+  React.useEffect(() => {
+      console.log(users);
+      console.log("Look here!");
+
+  if (Role.isRole(props.user, Role.Admin)) {
+      (async () => {
+        const data = await pizzaService.listUsers();
+              console.log("USERS FROM API:", data);
+
+        setUsers(data);
+      })();
+    }
+  }, [props.user]);
 
   function createFranchise() {
     navigate('/admin-dashboard/create-franchise');
@@ -39,10 +57,102 @@ export default function AdminDashboard(props: Props) {
     setFranchiseList(await pizzaService.getFranchises(franchisePage, 10, `*${filterFranchiseRef.current?.value}*`));
   }
 
+  async function filterUsers() {
+    const data = await pizzaService.listUsers();
+    const filterValue = filterUserRef.current?.value?.toLowerCase() || '';
+
+    const filtered = data.filter((u) =>
+      (u.name ?? '').toLowerCase().includes(filterValue)
+    );
+
+    setUsers(filtered);
+  }
+
   let response = <NotFound />;
   if (Role.isRole(props.user, Role.Admin)) {
     response = (
       <View title="Mama Ricci's kitchen">
+
+{/* this is my list users box */}
+
+                  <div className="text-start py-8 px-4 sm:px-6 lg:px-8">
+                    <h3 className="text-neutral-100 text-xl">Users</h3>
+                    <div className="bg-neutral-100 overflow-clip my-4">
+                      <div className="flex flex-col">
+                        <div className="-m-1.5 overflow-x-auto">
+                          <div className="p-1.5 min-w-full inline-block align-middle">
+                            <div className="overflow-hidden">
+                               <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="uppercase text-neutral-100 bg-slate-400 border-b-2 border-gray-500">
+                                    <tr>
+                                    {['Name', 'Email', 'Role', 'Action'].map((header) => (
+                                      <th key={header} scope="col" className="px-6 py-3 text-center text-xs font-medium">
+                                        {header}
+                                      </th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                      {/* <tbody>
+                                        {users.map((user) => (
+                                          <tr key={user.id} className="border-t">
+                                            <td className="px-6 py-3 text-center">{user.name}</td>
+                                            <td className="px-6 py-3 text-center">{user.email}</td>
+                                            <td className="px-6 py-3 text-center">
+                                              {user.roles?.map(r =>
+                                                r.role.charAt(0).toUpperCase() + r.role.slice(1)
+                                              ).join(', ') || '—'}
+                                            </td> 
+                                            <td className="px-6 py-3 text-center">
+                                              <button
+                                                className="px-2 py-1 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-orange-400 text-orange-400 hover:border-orange-800 hover:text-orange-800">
+                                                Delete
+                                              </button>
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody> */}
+                                <tfoot>
+                                  <tr>
+                                    <td className="px-1 py-1">
+                                      {/* change ref filterFranchiseRef to search user */}
+                                      <input
+                                        type="text"
+                                        ref={filterUserRef}
+                                        name="filterUser"
+                                        placeholder="Filter users"
+                                        className="px-2 py-1 text-sm border border-gray-300 rounded-lg"
+                                      />
+
+                                      <button
+                                        type="button"
+                                        className="ml-2 px-2 py-1 text-sm font-semibold rounded-lg border border-orange-400 text-orange-400 hover:border-orange-800 hover:text-orange-800"
+                                        onClick={filterUsers}
+                                      >
+                                        Search
+                                      </button>
+                                    </td>
+                                    {/* <td colSpan={4} className="text-end text-sm font-medium">
+                                      <button className="w-12 p-1 text-sm font-semibold rounded-lg border border-transparent bg-white text-grey border-grey m-1 hover:bg-orange-200 disabled:bg-neutral-300 " onClick={() => setFranchisePage(franchisePage - 1)} disabled={franchisePage <= 0}>
+                                      Prev
+                                      </button>
+                                      <button className="w-12 p-1 text-sm font-semibold rounded-lg border border-transparent bg-white text-grey border-grey m-1 hover:bg-orange-200 disabled:bg-neutral-300" onClick={() => setFranchisePage(franchisePage + 1)} disabled={!franchiseList.more}>
+                                      Next
+                                      </button>
+                                    </td> */}
+                                  </tr>
+                                </tfoot> 
+                              </table> 
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+
+
+{/* This is the Franchise list Box */}
+
         <div className="text-start py-8 px-4 sm:px-6 lg:px-8">
           <h3 className="text-neutral-100 text-xl">Franchises</h3>
           <div className="bg-neutral-100 overflow-clip my-4">

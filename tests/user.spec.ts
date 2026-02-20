@@ -1,8 +1,5 @@
 import { test, expect } from 'playwright-test-coverage';
 
-test('about page of user', async ({ page }) => {
-
-});
 
 
 test('updateUser', async ({ page }) => {
@@ -53,4 +50,17 @@ test('updateUser', async ({ page }) => {
 });
 
 
-test
+test('listUser', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Login' }).click();
+    await page.getByRole('textbox', { name: 'Email address' }).fill('calvinm7@byu.edu');
+    await page.getByRole('textbox', { name: 'Email address' }).press('Tab');
+    await page.getByRole('textbox', { name: 'Password' }).fill('BeastMan77');
+    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByRole('link', { name: 'Admin' }).click();
+    await page.getByRole('link', { name: 'Admin', exact: true }).click();
+    await page.getByRole('link', { name: 'admin-dashboard' }).click();
+    await page.getByRole('textbox', { name: 'Name ' }).fill('Will');
+    await page.getByRole('button', { name: 'Search' }).click();
+
+});
