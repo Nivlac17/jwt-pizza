@@ -89,9 +89,9 @@ async function basicInit(page: Page) {
     });
 
 
-    // Standard franchises and stores
-    await page.route(/\/api\/franchise(\?.*)?$/, async (route) => {
-        const franchiseRes = {
+
+
+    let franchiseRes = {
         franchises: [
             {
             id: 2,
@@ -106,42 +106,48 @@ async function basicInit(page: Page) {
             { id: 4, name: 'topSpot', stores: [] },
         ],
         };
-        if ((route.request().method()) === 'GET') {
-            await route.fulfill({ 
-                status: 200,
-                json: franchiseRes 
+
+
+    // Standard franchises and stores
+await page.route(/\/api\/franchise(\/.*)?(\?.*)?$/, async (route) => {
+        const method = route.request().method();
+            console.log('API HIT:', route.request().url(), route.request().method());
+        if (method === 'GET') {
+            await route.fulfill({
+            status: 200,
+            json: franchiseRes,
             });
+            return;
         }
-        if ((route.request().method()) === 'PUT') {
+
+        if (method === 'POST') {
             const body = route.request().postDataJSON();
 
             const newFranchise = {
-                id: Date.now(),
-                name: body.name,
-                stores: [],
+            id: franchiseRes.franchises.length + 1,
+            name: body.name,
+            stores: [],
             };
 
-franchiseRes.franchises.push(newFranchise);
-
+            franchiseRes.franchises.push(newFranchise);
 
             await route.fulfill({
-                status: 200,
-                json: franchiseRes,
+            status: 200,
+            json: newFranchise,
             });
-            return;        
+            return;
         }
-        if ((route.request().method()) === 'DELETE') {
-            await route.fulfill({ json: franchiseRes });
+
+        if (method === 'DELETE') {
+            await route.fulfill({ status: 204 });
+            return;
         }
-    });
+        });
+
 
 
 
     await page.goto('/');
-
-    
-
-
 
 }
 
@@ -195,27 +201,30 @@ test('create franchise, delete franchise', async ({ page }) => {
 });
 
 
-// test('delete franchise', async ({ page }) => {
-//     // await page.goto('http://localhost:5173/');
-//         await basicInit(page);
-//     await page.getByRole('link', { name: 'Login' }).click();
-//     await page.getByRole('textbox', { name: 'Email address' }).fill('calvinm7@byu.edu');
-//     await page.getByRole('textbox', { name: 'Email address' }).press('Tab');
-//     await page.getByRole('textbox', { name: 'Password' }).fill('BeastMan77');
-//     await page.getByRole('button', { name: 'Login' }).click();
-//     await page.getByRole('link', { name: 'Admin' }).click();
-//     await page.getByRole('link', { name: 'Admin', exact: true }).click();
-//     await page.getByRole('link', { name: 'admin-dashboard' }).click();
-//     await page.getByRole('button', { name: 'Add Franchise' }).click();
-//     await page.getByRole('textbox', { name: 'franchise name' }).click();
-//     await page.getByRole('textbox', { name: 'franchise name' }).fill('cal');
-//     await page.getByRole('textbox', { name: 'franchisee admin email' }).click();
-//     await page.getByRole('textbox', { name: 'franchisee admin email' }).fill('calvinm7@byu.edu');
-//     await page.getByRole('button', { name: 'Create' }).click();
-//     await page.getByRole('link', { name: 'Order' }).click();
-//     await page.getByRole('link', { name: 'Admin' }).click();
-//     await page.getByRole('button', { name: 'Close' }).click();
-//     await page.getByRole('link', { name: 'Admin', exact: true }).click();
-//     await page.getByRole('link', { name: 'k' }).click();
-//     await page.getByRole('link', { name: 'Logout' }).click();
-// });
+test('delete franchise', async ({ page }) => {
+    // await page.goto('http://localhost:5173/');
+        await basicInit(page);
+    await page.getByRole('link', { name: 'Login' }).click();
+    await page.getByRole('textbox', { name: 'Email address' }).fill('calvinm7@byu.edu');
+    await page.getByRole('textbox', { name: 'Email address' }).press('Tab');
+    await page.getByRole('textbox', { name: 'Password' }).fill('BeastMan77');
+    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByRole('link', { name: 'Admin' }).click();
+    await page.getByRole('link', { name: 'Admin', exact: true }).click();
+    await page.getByRole('link', { name: 'admin-dashboard' }).click();
+    await page.getByRole('button', { name: 'Add Franchise' }).click();
+    await page.getByRole('textbox', { name: 'franchise name' }).click();
+    await page.getByRole('textbox', { name: 'franchise name' }).fill('This is a Test');
+    await page.getByRole('textbox', { name: 'franchisee admin email' }).click();
+    await page.getByRole('textbox', { name: 'franchisee admin email' }).fill('calvinm7@byu.edu');
+    await page.getByRole('button', { name: 'Create' }).click();
+    await page.getByRole('link', { name: 'Order' }).click();
+    await page.getByRole('link', { name: 'Admin' }).click();
+    
+    await page.locator('tbody:nth-child(5) > .border-neutral-500 > .px-6 > .px-2').click();
+    await page.getByRole('button', { name: 'Close' }).click();
+
+    await page.getByRole('link', { name: 'Admin', exact: true }).click();
+    await page.getByRole('link', { name: 'k' }).click();
+    await page.getByRole('link', { name: 'Logout' }).click();
+});
